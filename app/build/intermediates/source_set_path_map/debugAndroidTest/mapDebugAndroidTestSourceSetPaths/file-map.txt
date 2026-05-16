@@ -1,0 +1,4 @@
+com.alif.studentroutine.test.app-androidTest-0 /Users/alifmahmud/FM 01/Developed by Alif/My routine/app/build/generated/res/resValues/androidTest/debug
+com.alif.studentroutine.test.app-mergeDebugAndroidTestResources-1 /Users/alifmahmud/FM 01/Developed by Alif/My routine/app/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/merged.dir
+com.alif.studentroutine.test.app-mergeDebugAndroidTestResources-2 /Users/alifmahmud/FM 01/Developed by Alif/My routine/app/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/stripped.dir
+com.alif.studentroutine.test.app-debugAndroidTest-3 /Users/alifmahmud/FM 01/Developed by Alif/My routine/app/build/intermediates/merged_res/debugAndroidTest/mergeDebugAndroidTestResources
