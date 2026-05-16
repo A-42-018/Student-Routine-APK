@@ -1,5 +1,6 @@
 package com.alif.studentroutine.ui.screens
 
+import android.app.TimePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -20,6 +21,7 @@ import com.alif.studentroutine.data.entity.ClassItem
 import com.alif.studentroutine.data.repository.RoutineRepository
 import com.alif.studentroutine.viewmodel.AddEditViewModel
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,6 +62,40 @@ fun AddEditClassScreen(
         }
     }
 
+    // ── Helper: format hour & minute to "09:00 AM" style ──
+    fun formatTime(hour: Int, minute: Int): String {
+        val amPm = if (hour < 12) "AM" else "PM"
+        val displayHour = when {
+            hour == 0 -> 12
+            hour > 12 -> hour - 12
+            else -> hour
+        }
+        return String.format(Locale.getDefault(), "%02d:%02d %s", displayHour, minute, amPm)
+    }
+
+    // ── TimePickerDialog launchers ──
+    val startTimePicker = TimePickerDialog(
+        context,
+        { _, hour, minute ->
+            startHour = hour
+            startMinute = minute
+        },
+        startHour,
+        startMinute,
+        false // false = 12-hour format with AM/PM
+    )
+
+    val endTimePicker = TimePickerDialog(
+        context,
+        { _, hour, minute ->
+            endHour = hour
+            endMinute = minute
+        },
+        endHour,
+        endMinute,
+        false
+    )
+
     val dayNames = listOf("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
     val reminderOptions = listOf(0, 5, 10, 15, 30, 60)
 
@@ -86,7 +122,11 @@ fun AddEditClassScreen(
                                 }
                             }
                         ) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = MaterialTheme.colorScheme.error
+                            )
                         }
                     }
                 },
@@ -115,6 +155,8 @@ fun AddEditClassScreen(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+
+                // ── Subject ──
                 OutlinedTextField(
                     value = subject,
                     onValueChange = { subject = it },
@@ -124,6 +166,7 @@ fun AddEditClassScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                // ── Room ──
                 OutlinedTextField(
                     value = room,
                     onValueChange = { room = it },
@@ -132,6 +175,7 @@ fun AddEditClassScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                // ── Day of Week ──
                 Text("Day of Week", style = MaterialTheme.typography.titleMedium)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -147,12 +191,43 @@ fun AddEditClassScreen(
                     }
                 }
 
+                // ── Start Time ──
                 Text("Start Time", style = MaterialTheme.typography.titleMedium)
-                TimePickerRow(hour = startHour, minute = startMinute, onHourChange = { startHour = it }, onMinuteChange = { startMinute = it })
+                OutlinedButton(
+                    onClick = { startTimePicker.show() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        Icons.Default.AccessTime,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = formatTime(startHour, startMinute),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
 
+                // ── End Time ──
                 Text("End Time", style = MaterialTheme.typography.titleMedium)
-                TimePickerRow(hour = endHour, minute = endMinute, onHourChange = { endHour = it }, onMinuteChange = { endMinute = it })
+                OutlinedButton(
+                    onClick = { endTimePicker.show() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        Icons.Default.AccessTime,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = formatTime(endHour, endMinute),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
 
+                // ── Reminder ──
                 Text("Reminder", style = MaterialTheme.typography.titleMedium)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -169,6 +244,7 @@ fun AddEditClassScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // ── Save Button ──
                 Button(
                     onClick = {
                         if (subject.isBlank()) {
@@ -210,39 +286,5 @@ fun AddEditClassScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun TimePickerRow(
-    hour: Int,
-    minute: Int,
-    onHourChange: (Int) -> Unit,
-    onMinuteChange: (Int) -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        OutlinedTextField(
-            value = hour.toString(),
-            onValueChange = {
-                val h = it.toIntOrNull() ?: 0
-                onHourChange(h.coerceIn(0, 23))
-            },
-            label = { Text("Hour") },
-            modifier = Modifier.weight(1f)
-        )
-        Text(":", style = MaterialTheme.typography.headlineMedium)
-        OutlinedTextField(
-            value = minute.toString().padStart(2, '0'),
-            onValueChange = {
-                val m = it.toIntOrNull() ?: 0
-                onMinuteChange(m.coerceIn(0, 59))
-            },
-            label = { Text("Minute") },
-            modifier = Modifier.weight(1f)
-        )
     }
 }
