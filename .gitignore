@@ -1,0 +1,19 @@
+# Gradle files
+.gradle/
+gradle/
+wrapper/
+caches/
+build/
+*.jar
+*.zip
+
+# Android
+local.properties
+*.iml
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# DS Store (Mac)
+.DS_Store
