@@ -387,7 +387,7 @@ fun AddEditClassScreen(
 
 // ── Reusable section card ─────────────────────────────────────────────────────
 @Composable
-private fun FormSectionCard(content: @Composable ColumnScope.() -> Unit) {
+fun FormSectionCard(content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -406,7 +406,7 @@ private fun FormSectionCard(content: @Composable ColumnScope.() -> Unit) {
 
 // ── Section label with icon ───────────────────────────────────────────────────
 @Composable
-private fun FormSectionLabel(icon: ImageVector, label: String) {
+fun FormSectionLabel(icon: ImageVector, label: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -429,7 +429,7 @@ private fun FormSectionLabel(icon: ImageVector, label: String) {
 
 // ── Time picker button ────────────────────────────────────────────────────────
 @Composable
-private fun TimePickerButton(
+fun TimePickerButton(
     modifier: Modifier = Modifier,
     label: String,
     time: String,
