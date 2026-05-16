@@ -89,7 +89,7 @@ fun TimetableScreen(
             ) {
                 if (filteredClasses.isEmpty()) {
                     item {
-                        EmptyStateCard("No classes found. Add your first class!")
+                        DashEmptyCard("No classes found. Add your first class!")
                     }
                 } else {
                     items(filteredClasses) { classItem ->

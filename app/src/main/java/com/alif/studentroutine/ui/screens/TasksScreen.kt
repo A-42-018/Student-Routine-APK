@@ -89,7 +89,7 @@ fun TasksScreen(
             ) {
                 if (displayedTasks.isEmpty()) {
                     item {
-                        EmptyStateCard("No tasks found. Add your first task!")
+                        DashEmptyCard("No tasks found. Add your first task!")
                     }
                 } else {
                     items(displayedTasks) { task ->
