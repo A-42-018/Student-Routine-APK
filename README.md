@@ -20,20 +20,57 @@ A modern, student-friendly Android app for managing daily routine activities.
 
 ## Project Structure
 ```
-app/src/main/java/com/alif/studentroutine/
-├── data/
-│   ├── database/       # Room Database & DAOs
-│   ├── entity/         # Data models (ClassItem, TaskItem)
-│   └── repository/     # Data access layer
-├── location/           # LocationHelper for GPS access
-├── notification/       # AlarmReceiver, NotificationHelper
-├── ui/
-│   ├── navigation/     # NavGraph & screen routes
-│   ├── screens/        # All Composable screens
-│   └── theme/          # Colors, Typography, Theme
-├── viewmodel/          # Screen ViewModels
-├── MainActivity.kt     # Entry point
-└── StudentRoutineApp.kt # Application class
+app/src/main/
+├── AndroidManifest.xml
+└── java/com/alif/studentroutine/
+    ├── MainActivity.kt                          # Entry point, NavController, BubbleBottomBar host
+    ├── StudentRoutineApp.kt                     # Application class, DB & repo initialisation
+    │
+    ├── data/
+    │   ├── BackupManager.kt                     # JSON export / import of classes and tasks
+    │   ├── DataStoreManager.kt                  # Preferences: dark mode, notifications toggle
+    │   ├── database/
+    │   │   ├── AppDatabase.kt                   # Room database, singleton getInstance()
+    │   │   ├── ClassItemDao.kt                  # DAO: CRUD + getClassesByDay query
+    │   │   └── TaskItemDao.kt                   # DAO: CRUD + getPendingTasks query
+    │   ├── entity/
+    │   │   ├── ClassItem.kt                     # Room entity: subject, day, time, room, reminder
+    │   │   └── TaskItem.kt                      # Room entity: title, dueDate, priority, reminder
+    │   └── repository/
+    │       └── RoutineRepository.kt             # Single data access layer over both DAOs
+    │
+    ├── location/
+    │   └── LocationHelper.kt                    # GPS / network location via LocationManager
+    │
+    ├── notification/
+    │   ├── AlarmReceiver.kt                     # BroadcastReceiver + BootReceiver + AlarmScheduler
+    │   └── NotificationHelper.kt               # Notification channel creation & display
+    │
+    ├── ui/
+    │   ├── components/
+    │   │   ├── BubbleBottomBar.kt               # Animated curved bottom navigation bar
+    │   │   ├── OffDayCard.kt                    # Playful empty-state card for days with no classes
+    │   │   └── TopHeaderPanel.kt                # Rounded gradient headers and dashboard hero cards
+    │   ├── navigation/
+    │   │   └── NavGraph.kt                      # NavHost, Screen sealed class, all routes
+    │   ├── screens/
+    │   │   ├── AddEditClassScreen.kt            # Add / edit a class (day, time, room, reminder)
+    │   │   ├── AddEditTaskScreen.kt             # Add / edit a task (due date, priority, reminder)
+    │   │   ├── DashboardScreen.kt               # Home: greeting, stats, next class, day pager
+    │   │   ├── NearbyLibrariesScreen.kt         # Location + mock library list + Maps deep-link
+    │   │   ├── SettingsScreen.kt                # Dark mode, notifications, backup/restore, about
+    │   │   ├── TasksScreen.kt                   # Full task list with filter, complete, delete
+    │   │   └── TimetableScreen.kt               # Weekly timetable with day-filter tabs
+    │   └── theme/
+    │       ├── Color.kt                         # Brand palette (Primary, Secondary, Success, etc.)
+    │       ├── Theme.kt                         # MaterialTheme light/dark configuration
+    │       └── Type.kt                          # Typography scale
+    │
+    └── viewmodel/
+        ├── AddEditViewModel.kt                  # Save/update/delete class & task, alarm scheduling
+        ├── DashboardViewModel.kt                # todayClasses, allClasses, pendingTasks flows
+        ├── TasksViewModel.kt                    # allTasks flow, toggleComplete, delete
+        └── TimetableViewModel.kt               # allClasses flow, deleteClass
 ```
 
 ## How to Build the APK

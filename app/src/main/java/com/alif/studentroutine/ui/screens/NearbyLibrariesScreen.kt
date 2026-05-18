@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.alif.studentroutine.location.LocationHelper
 import com.alif.studentroutine.location.LocationResult
+import com.alif.studentroutine.ui.components.RoundedTopHeaderPanel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -65,19 +66,13 @@ fun NearbyLibrariesScreen(onNavigateBack: () -> Unit) {
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text("Nearby Libraries") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+            RoundedTopHeaderPanel(
+                title = "Nearby Libraries",
+                navigationIcon = Icons.Default.ArrowBack,
+                navigationContentDescription = "Back",
+                onNavigateBack = onNavigateBack
             )
         }
     ) { padding ->

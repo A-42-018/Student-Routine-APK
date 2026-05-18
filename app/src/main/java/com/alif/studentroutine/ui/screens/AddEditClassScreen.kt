@@ -54,6 +54,28 @@ fun AddEditClassScreen(
     var reminderMinutes by remember { mutableIntStateOf(15) }
     var isLoading by remember { mutableStateOf(classId != -1) }
 
+    val startTimePicker = TimePickerDialog(
+        context,
+        { _, hour, minute ->
+            startHour = hour
+            startMinute = minute
+        },
+        startHour,
+        startMinute,
+        false
+    )
+
+    val endTimePicker = TimePickerDialog(
+        context,
+        { _, hour, minute ->
+            endHour = hour
+            endMinute = minute
+        },
+        endHour,
+        endMinute,
+        false
+    )
+
     LaunchedEffect(classId) {
         if (classId != -1) {
             val existing = viewModel.getClassById(classId)
@@ -71,7 +93,7 @@ fun AddEditClassScreen(
         }
     }
 
-    fun fmt(hour: Int, minute: Int): String {
+    fun formatTime(hour: Int, minute: Int): String {
         val amPm = if (hour < 12) "AM" else "PM"
         val h = when {
             hour == 0 -> 12
@@ -80,19 +102,6 @@ fun AddEditClassScreen(
         }
         return String.format(Locale.getDefault(), "%02d:%02d %s", h, minute, amPm)
     }
-
-    val startTimePicker = TimePickerDialog(
-        context, { _, h, m -> startHour = h; startMinute = m },
-        startHour, startMinute, false
-    )
-    val endTimePicker = TimePickerDialog(
-        context, { _, h, m -> endHour = h; endMinute = m },
-        endHour, endMinute, false
-    )
-
-    // Sun=1..Sat=7 (Calendar convention), displayed Mon–Sun friendly labels
-    val dayLabels = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
-    val reminderOptions = listOf(0, 5, 10, 15, 30, 60)
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -220,6 +229,7 @@ fun AddEditClassScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
+                            val dayLabels = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
                             dayLabels.forEachIndexed { index, day ->
                                 val dayIndex = index + 1 // Calendar: Sun=1..Sat=7
                                 val isSelected = selectedDay == dayIndex
@@ -259,28 +269,21 @@ fun AddEditClassScreen(
                 FormSectionCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         FormSectionLabel(icon = Icons.Default.AccessTime, label = "Class Time")
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             TimePickerButton(
                                 modifier = Modifier.weight(1f),
-                                label = "Start",
-                                time = fmt(startHour, startMinute),
+                                label = "START TIME",
+                                time = formatTime(startHour, startMinute),
                                 onClick = { startTimePicker.show() }
-                            )
-                            // visual separator
-                            Box(
-                                modifier = Modifier
-                                    .width(1.dp)
-                                    .height(56.dp)
-                                    .align(Alignment.CenterVertically)
-                                    .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f))
                             )
                             TimePickerButton(
                                 modifier = Modifier.weight(1f),
-                                label = "End",
-                                time = fmt(endHour, endMinute),
+                                label = "END TIME",
+                                time = formatTime(endHour, endMinute),
                                 onClick = { endTimePicker.show() }
                             )
                         }
@@ -295,6 +298,7 @@ fun AddEditClassScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
+                            val reminderOptions = listOf(0, 5, 10, 15, 30, 60)
                             reminderOptions.forEach { mins ->
                                 val isSelected = reminderMinutes == mins
                                 Box(

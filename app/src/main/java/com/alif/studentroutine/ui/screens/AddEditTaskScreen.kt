@@ -45,11 +45,9 @@ fun AddEditTaskScreen(
         viewModel(factory = AddEditViewModel.Factory(repository, dataStoreManager))
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val calendar = Calendar.getInstance()
-
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var dueDate by remember { mutableLongStateOf(calendar.timeInMillis + 86400000) }
+    var dueDate by remember { mutableLongStateOf(System.currentTimeMillis() + 86400000L) }
     var priority by remember { mutableIntStateOf(1) }
     var reminderMinutes by remember { mutableIntStateOf(30) }
     var isLoading by remember { mutableStateOf(taskId != -1) }
@@ -68,6 +66,8 @@ fun AddEditTaskScreen(
         }
     }
 
+    val dueDateCalendar = Calendar.getInstance().apply { timeInMillis = dueDate }
+
     val dateDisplayFormat = SimpleDateFormat("EEE, MMM dd yyyy", Locale.getDefault())
     val timeDisplayFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
 
@@ -83,23 +83,25 @@ fun AddEditTaskScreen(
                 set(year, month, day)
             }
             dueDate = c.timeInMillis
-            calendar.timeInMillis = dueDate
         },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
+        dueDateCalendar.get(Calendar.YEAR),
+        dueDateCalendar.get(Calendar.MONTH),
+        dueDateCalendar.get(Calendar.DAY_OF_MONTH)
     )
 
     val timePicker = TimePickerDialog(
         context,
         { _, hour, minute ->
-            calendar.set(Calendar.HOUR_OF_DAY, hour)
-            calendar.set(Calendar.MINUTE, minute)
-            calendar.set(Calendar.SECOND, 0)
-            dueDate = calendar.timeInMillis
+            val c = Calendar.getInstance().apply {
+                timeInMillis = dueDate
+                set(Calendar.HOUR_OF_DAY, hour)
+                set(Calendar.MINUTE, minute)
+                set(Calendar.SECOND, 0)
+            }
+            dueDate = c.timeInMillis
         },
-        calendar.get(Calendar.HOUR_OF_DAY),
-        calendar.get(Calendar.MINUTE),
+        dueDateCalendar.get(Calendar.HOUR_OF_DAY),
+        dueDateCalendar.get(Calendar.MINUTE),
         false
     )
 

@@ -17,6 +17,9 @@ class DashboardViewModel(private val repository: RoutineRepository) : ViewModel(
     val todayClasses: StateFlow<List<ClassItem>> = repository.getClassesByDay(today)
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    val allClasses: StateFlow<List<ClassItem>> = repository.getAllClasses()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
     val pendingTasks: StateFlow<List<TaskItem>> = repository.getPendingTasks()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 

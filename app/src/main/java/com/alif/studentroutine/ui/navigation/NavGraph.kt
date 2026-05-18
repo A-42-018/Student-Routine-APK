@@ -38,11 +38,8 @@ fun NavGraph(
             DashboardScreen(
                 repository = repository,
                 onNavigateToTimetable = { navController.navigate(Screen.Timetable.route) },
-                onNavigateToTasks = { navController.navigate(Screen.Tasks.route) },
                 onNavigateToAddClass = { navController.navigate(Screen.AddClass.createRoute()) },
-                onNavigateToAddTask = { navController.navigate(Screen.AddTask.createRoute()) },
-                onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
-                onNavigateToNearbyLibraries = { navController.navigate(Screen.NearbyLibraries.route) }
+                onNavigateToAddTask = { navController.navigate(Screen.AddTask.createRoute()) }
             )
         }
 
@@ -60,7 +57,6 @@ fun NavGraph(
         composable(Screen.Tasks.route) {
             TasksScreen(
                 repository = repository,
-                onNavigateBack = { navController.popBackStack() },
                 onAddTask = { navController.navigate(Screen.AddTask.createRoute()) },
                 onEditTask = { taskId ->
                     navController.navigate(Screen.AddTask.createRoute(taskId))
@@ -98,7 +94,6 @@ fun NavGraph(
             SettingsScreen(
                 dataStoreManager = dataStoreManager,
                 repository = repository,
-                onNavigateBack = { navController.popBackStack() },
                 onNavigateToNearbyLibraries = { navController.navigate(Screen.NearbyLibraries.route) }
             )
         }

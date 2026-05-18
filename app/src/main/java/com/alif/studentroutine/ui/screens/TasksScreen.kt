@@ -1,5 +1,5 @@
 package com.alif.studentroutine.ui.screens
-
+import com.alif.studentroutine.ui.components.DashEmptyCard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.alif.studentroutine.data.entity.TaskItem
 import com.alif.studentroutine.data.repository.RoutineRepository
+import com.alif.studentroutine.ui.components.RoundedTopHeaderPanel
 import com.alif.studentroutine.ui.theme.*
 import com.alif.studentroutine.viewmodel.TasksViewModel
 import java.text.SimpleDateFormat
@@ -31,7 +32,6 @@ import java.util.*
 @Composable
 fun TasksScreen(
     repository: RoutineRepository,
-    onNavigateBack: () -> Unit,
     onAddTask: () -> Unit,
     onEditTask: (Int) -> Unit
 ) {
@@ -48,35 +48,11 @@ fun TasksScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Tasks",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontWeight = FontWeight.Medium
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onAddTask) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = "Add Task",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+            RoundedTopHeaderPanel(
+                title = "Tasks",
+                actionIcon = Icons.Default.Add,
+                actionContentDescription = "Add Task",
+                onActionClick = onAddTask
             )
         }
     ) { padding ->
@@ -87,7 +63,7 @@ fun TasksScreen(
                 .padding(padding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(vertical = 16.dp)
+            contentPadding = PaddingValues(top = 12.dp, bottom = 100.dp)
         ) {
 
             // ── Stats Row ─────────────────────────────────────

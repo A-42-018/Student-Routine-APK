@@ -17,7 +17,7 @@ import java.util.Calendar
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val type = intent.getStringExtra("type") ?: return
+        intent.getStringExtra("type") ?: return
         val title = intent.getStringExtra("title") ?: "Reminder"
         val message = intent.getStringExtra("message") ?: ""
         val id = intent.getIntExtra("id", 0)
@@ -29,20 +29,19 @@ class AlarmReceiver : BroadcastReceiver() {
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            // Reschedule alarms after reboot
-            val database = AppDatabase.getDatabase(context)
-            val scope = CoroutineScope(Dispatchers.IO)
-
-            scope.launch {
-                // Reschedule alarms on boot - would collect flows here in production
-                // For simplicity, skipped in this basic version
+            // Reschedule alarms on boot
+            val repository = RoutineRepository(
+                AppDatabase.getDatabase(context).classItemDao(),
+                AppDatabase.getDatabase(context).taskItemDao()
+            )
+            CoroutineScope(Dispatchers.IO).launch {
+                AlarmScheduler.rescheduleAll(context, repository)
             }
         }
     }
 }
 
 object AlarmScheduler {
-    private const val CLASS_REMINDER_MINUTES = 30
 
     fun scheduleClassReminder(context: Context, classItem: ClassItem) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -65,7 +64,7 @@ object AlarmScheduler {
             set(Calendar.HOUR_OF_DAY, classItem.startTimeHour)
             set(Calendar.MINUTE, classItem.startTimeMinute)
             set(Calendar.SECOND, 0)
-            add(Calendar.MINUTE, -CLASS_REMINDER_MINUTES)
+            add(Calendar.MINUTE, -classItem.reminderMinutes)
         }
 
         if (calendar.timeInMillis < System.currentTimeMillis()) {

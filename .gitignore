@@ -7,6 +7,11 @@ build/
 *.jar
 *.zip
 
+# Gradle daemon / native caches (may land in project root)
+daemon/
+native/
+kotlin-profile/
+
 # Android
 local.properties
 *.iml

@@ -1,9 +1,12 @@
 package com.alif.studentroutine.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -23,6 +27,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.alif.studentroutine.data.entity.ClassItem
 import com.alif.studentroutine.data.entity.TaskItem
 import com.alif.studentroutine.data.repository.RoutineRepository
+import com.alif.studentroutine.ui.components.DashboardHeroHeader
+import com.alif.studentroutine.ui.components.OffDayCard
 import com.alif.studentroutine.ui.theme.HighPriority
 import com.alif.studentroutine.ui.theme.LowPriority
 import com.alif.studentroutine.ui.theme.MediumPriority
@@ -30,20 +36,19 @@ import com.alif.studentroutine.ui.theme.Success
 import com.alif.studentroutine.viewmodel.DashboardViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     repository: RoutineRepository,
     onNavigateToTimetable: () -> Unit,
-    onNavigateToTasks: () -> Unit,
     onNavigateToAddClass: () -> Unit,
-    onNavigateToAddTask: () -> Unit,
-    onNavigateToSettings: () -> Unit,
-    onNavigateToNearbyLibraries: () -> Unit
+    onNavigateToAddTask: () -> Unit
 ) {
     val viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory(repository))
     val todayClasses by viewModel.todayClasses.collectAsStateWithLifecycle()
+    val allClasses by viewModel.allClasses.collectAsStateWithLifecycle()
     val pendingTasks by viewModel.pendingTasks.collectAsStateWithLifecycle()
 
     // ── Date / time info ──────────────────────────────────────
@@ -68,218 +73,98 @@ fun DashboardScreen(
     val overdueCount = pendingTasks.count { it.dueDate < System.currentTimeMillis() }
 
     Scaffold(
+        // Allow Scaffold content to draw behind system bars so the header
+        // gradient can flow seamlessly into the status bar area.
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            TopAppBar(
-                title = {
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onNavigateToAddTask,
+                modifier = Modifier.padding(bottom = 72.dp),
+                icon = {
+                    Icon(
+                        Icons.Default.AddTask,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                },
+                text = {
                     Text(
-                        "Student Routine",
+                        "Add Task",
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontWeight = FontWeight.Medium
                     )
                 },
-                actions = {
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            Icons.Default.Settings,
-                            contentDescription = "Settings",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+                containerColor = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(16.dp)
             )
-        },
-        floatingActionButton = {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                SmallFloatingActionButton(
-                    onClick = onNavigateToAddClass,
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = "Add Class",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                ExtendedFloatingActionButton(
-                    onClick = onNavigateToAddTask,
-                    icon = {
-                        Icon(
-                            Icons.Default.AddTask,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    },
-                    text = {
-                        Text(
-                            "Add Task",
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontWeight = FontWeight.Medium
-                        )
-                    },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(16.dp)
-                )
-            }
         }
-    ) { padding ->
+    ) { scaffoldPadding ->
+        // ── Root box: LazyColumn sits behind the header ───────
+        // The LazyColumn has NO horizontal padding at the top level.
+        // Each section adds its own padding so the header can be truly
+        // full-width without any offset/requiredWidth hacks.
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(padding)
-                .padding(horizontal = 16.dp),
+                // Only apply bottom scaffold padding; top insets are handled
+                // inside DashboardHeroHeader via windowInsetsPadding(statusBars).
+                .padding(bottom = scaffoldPadding.calculateBottomPadding()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(vertical = 16.dp)
+            contentPadding = PaddingValues(bottom = 100.dp)
         ) {
 
-            // ── Greeting ──────────────────────────────────────
+            // ── Hero header — full-width, no horizontal padding ────
+            // DashboardHeroHeader must call
+            //   .windowInsetsPadding(WindowInsets.statusBars)
+            // internally so the gradient flows behind the status bar
+            // while text/content stays below the system icons.
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        text = "$greeting, Alif 👋",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = "$todayName, $todayDate",
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f)
-                    )
-                }
+                DashboardHeroHeader(
+                    greeting = greeting,
+                    dateText = "$todayName, $todayDate",
+                    todayClassesCount = todayClasses.size,
+                    pendingTasksCount = pendingTasks.size,
+                    overdueCount = overdueCount,
+                    modifier = Modifier.fillMaxWidth()   // simple fillMaxWidth — no offset needed
+                )
             }
 
-            // ── Stats Row ─────────────────────────────────────
+            // ── Spacer that accounts for the overlapping stat cards ─
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    DashStatCard(
-                        modifier = Modifier.weight(1f),
-                        label = "Today's Classes",
-                        value = todayClasses.size.toString(),
-                        subText = if (todayClasses.isEmpty()) "No classes" else "${todayClasses.size} remaining",
-                        subColor = MaterialTheme.colorScheme.primary,
-                        progress = if (todayClasses.isEmpty()) 0f else 1f,
-                        progressColor = MaterialTheme.colorScheme.primary
-                    )
-                    DashStatCard(
-                        modifier = Modifier.weight(1f),
-                        label = "Pending Tasks",
-                        value = pendingTasks.size.toString(),
-                        subText = if (overdueCount > 0) "$overdueCount overdue" else "All on track",
-                        subColor = if (overdueCount > 0) MaterialTheme.colorScheme.error else Success,
-                        progress = if (pendingTasks.isEmpty()) 0f
-                        else overdueCount.toFloat() / pendingTasks.size,
-                        progressColor = if (overdueCount > 0) MaterialTheme.colorScheme.error else Success
-                    )
-                }
+                Spacer(modifier = Modifier.height(54.dp))
             }
 
-            // ── Next Class Highlight ───────────────────────────
+            // ── All sections below get horizontal padding ──────────
+            // ── Next Class Highlight ───────────────────────────────
             if (nextClass != null) {
                 item {
-                    DashNextClassCard(classItem = nextClass, nowMinutes = nowMinutes)
-                }
-            }
-
-            // ── Today's Classes ───────────────────────────────
-            item {
-                DashSectionHeader(title = "Today's Classes", onViewAll = onNavigateToTimetable)
-            }
-
-            if (todayClasses.isEmpty()) {
-                item { DashEmptyCard("No classes today! Enjoy your free time 🎉") }
-            } else {
-                items(todayClasses) { classItem ->
-                    DashClassCard(classItem = classItem, nowMinutes = nowMinutes)
-                }
-            }
-
-            // ── Pending Tasks ─────────────────────────────────
-            item {
-                DashSectionHeader(title = "Pending Tasks", onViewAll = onNavigateToTasks)
-            }
-
-            if (pendingTasks.isEmpty()) {
-                item { DashEmptyCard("All tasks completed! Great job ✅") }
-            } else {
-                items(pendingTasks.take(5)) { task ->
-                    DashTaskCard(
-                        task = task,
-                        onComplete = { viewModel.markTaskComplete(task) }
+                    DashNextClassCard(
+                        classItem = nextClass,
+                        nowMinutes = nowMinutes,
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
             }
 
-            // ── Find Libraries ────────────────────────────────
+            // ── Day Swipe Classes ──────────────────────────────────
             item {
-                Card(
-                    onClick = onNavigateToNearbyLibraries,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f)
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(
-                        0.5.dp,
-                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.35f)
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(38.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.LocalLibrary,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                "Find Libraries Near You",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                            Text(
-                                "Discover study spots nearby",
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f)
-                            )
-                        }
-                        Icon(
-                            Icons.Default.ChevronRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
+                DashSectionHeader(
+                    title = "Classes by Day",
+                    onViewAll = onNavigateToTimetable,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
             }
-
-            item { Spacer(modifier = Modifier.height(80.dp)) }
+            item {
+                // The pager itself spans full width; its internal cards
+                // use their own horizontal padding.
+                DayClassesPager(
+                    allClasses = allClasses,
+                    todayDayIndex = calendar.get(Calendar.DAY_OF_WEEK) - 1,
+                    nowMinutes = nowMinutes
+                )
+            }
         }
     }
 }
@@ -299,7 +184,7 @@ fun DashStatCard(
         modifier = modifier,
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(
+        border = BorderStroke(
             0.5.dp,
             MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
         )
@@ -343,16 +228,22 @@ fun DashStatCard(
 
 // ── Next Class Card ───────────────────────────────────────────────────────────
 @Composable
-fun DashNextClassCard(classItem: ClassItem, nowMinutes: Int) {
+fun DashNextClassCard(
+    classItem: ClassItem,
+    nowMinutes: Int,
+    modifier: Modifier = Modifier
+) {
     val diff = (classItem.startTimeHour * 60 + classItem.startTimeMinute) - nowMinutes
+    // diff > 0 is guaranteed by the caller's filter, so "Starting now" is a
+    // safety fallback only.
     val countdownText = when {
-        diff <= 0  -> "Starting now"
-        diff < 60  -> "in $diff min"
-        else       -> "in ${diff / 60}h ${diff % 60}m"
+        diff <= 0 -> "Starting now"
+        diff < 60 -> "in $diff min"
+        else      -> "in ${diff / 60}h ${diff % 60}m"
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
     ) {
@@ -414,9 +305,13 @@ fun DashNextClassCard(classItem: ClassItem, nowMinutes: Int) {
 
 // ── Section Header ────────────────────────────────────────────────────────────
 @Composable
-fun DashSectionHeader(title: String, onViewAll: () -> Unit) {
+fun DashSectionHeader(
+    title: String,
+    onViewAll: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -433,12 +328,14 @@ fun DashSectionHeader(title: String, onViewAll: () -> Unit) {
 }
 
 // ── Class Card ────────────────────────────────────────────────────────────────
+// nowMinutes = null means "not today" — skips ongoing/past logic entirely
+// instead of the magic -1 sentinel.
 @Composable
-fun DashClassCard(classItem: ClassItem, nowMinutes: Int) {
+fun DashClassCard(classItem: ClassItem, nowMinutes: Int?) {
     val classStart = classItem.startTimeHour * 60 + classItem.startTimeMinute
-    val classEnd   = classItem.endTimeHour * 60 + classItem.endTimeMinute
-    val isOngoing  = nowMinutes in classStart until classEnd
-    val isPast     = nowMinutes >= classEnd
+    val classEnd   = classItem.endTimeHour   * 60 + classItem.endTimeMinute
+    val isOngoing  = nowMinutes != null && nowMinutes in classStart until classEnd
+    val isPast     = nowMinutes != null && nowMinutes >= classEnd
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -449,7 +346,7 @@ fun DashClassCard(classItem: ClassItem, nowMinutes: Int) {
             else
                 MaterialTheme.colorScheme.surface
         ),
-        border = androidx.compose.foundation.BorderStroke(
+        border = BorderStroke(
             width = if (isOngoing) 1.dp else 0.5.dp,
             color = if (isOngoing)
                 MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
@@ -547,10 +444,11 @@ fun DashClassCard(classItem: ClassItem, nowMinutes: Int) {
 }
 
 // ── Task Card ─────────────────────────────────────────────────────────────────
+// dateFormat is remembered so it isn't recreated on every recomposition.
 @Composable
 fun DashTaskCard(task: TaskItem, onComplete: () -> Unit) {
     val isOverdue     = task.dueDate < System.currentTimeMillis()
-    val dateFormat    = SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault())
+    val dateFormat    = remember { SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault()) }
     val priorityColor = when (task.priority) {
         2    -> HighPriority
         1    -> MediumPriority
@@ -561,7 +459,7 @@ fun DashTaskCard(task: TaskItem, onComplete: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(
+        border = BorderStroke(
             0.5.dp,
             if (isOverdue)
                 MaterialTheme.colorScheme.error.copy(alpha = 0.4f)
@@ -639,29 +537,104 @@ fun DashTaskCard(task: TaskItem, onComplete: () -> Unit) {
     }
 }
 
-// ── Empty State ───────────────────────────────────────────────────────────────
+// ── Day Classes Pager ────────────────────────────────────────────────────────
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun DashEmptyCard(message: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(
-            0.5.dp,
-            MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
-        )
-    ) {
-        Box(
+fun DayClassesPager(
+    allClasses: List<ClassItem>,
+    todayDayIndex: Int,
+    nowMinutes: Int
+) {
+    val dayLabels     = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+    val dayLabelsFull = listOf("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+    val scope         = rememberCoroutineScope()
+    val pagerState    = rememberPagerState(initialPage = todayDayIndex) { 7 }
+
+    // Pre-compute classes per day so filtering doesn't run inside the pager
+    // frame loop on every swipe frame.
+    val classesByDay = remember(allClasses) {
+        (0..6).associateWith { dayIndex ->
+            allClasses
+                .filter { it.dayOfWeek == dayIndex + 1 }
+                .sortedWith(compareBy({ it.startTimeHour }, { it.startTimeMinute }))
+        }
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Day tabs
+        ScrollableTabRow(
+            selectedTabIndex = pagerState.currentPage,
+            edgePadding = 0.dp,
+            containerColor = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.primary,
+            divider = {}
+        ) {
+            dayLabels.forEachIndexed { index, day ->
+                val isSelected = pagerState.currentPage == index
+                Tab(
+                    selected = isSelected,
+                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                    text = {
+                        Text(
+                            day,
+                            fontSize = 12.sp,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                        )
+                    }
+                )
+            }
+        }
+
+        // Pager
+        HorizontalPager(
+            state = pagerState,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                message,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-            )
+                .height(300.dp)
+        ) { page ->
+            val pageOffset = ((pagerState.currentPage - page) +
+                    pagerState.currentPageOffsetFraction)
+                .let { kotlin.math.abs(it) }
+                .coerceIn(0f, 1f)
+            val scale = 0.85f + (1f - pageOffset) * 0.15f
+            val alpha = 0.5f  + (1f - pageOffset) * 0.5f
+
+            val dayClasses = classesByDay[page] ?: emptyList()
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer(scaleX = scale, scaleY = scale, alpha = alpha)
+                    .padding(horizontal = 16.dp)   // consistent horizontal padding inside pager
+            ) {
+                if (dayClasses.isEmpty()) {
+                    OffDayCard(
+                        dayLabel = dayLabelsFull[page],
+                        isToday  = page == todayDayIndex
+                    )
+                } else {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        dayClasses.take(4).forEach { classItem ->
+                            DashClassCard(
+                                classItem  = classItem,
+                                // Pass null for non-today pages — cleaner than magic -1
+                                nowMinutes = if (page == todayDayIndex) nowMinutes else null
+                            )
+                        }
+                        if (dayClasses.size > 4) {
+                            Text(
+                                "+${dayClasses.size - 4} more",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(start = 4.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

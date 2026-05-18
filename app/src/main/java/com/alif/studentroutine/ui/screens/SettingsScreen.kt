@@ -30,13 +30,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import com.alif.studentroutine.R
+import com.alif.studentroutine.ui.components.RoundedTopHeaderPanel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     dataStoreManager: DataStoreManager,
     repository: RoutineRepository,
-    onNavigateBack: () -> Unit,
     onNavigateToNearbyLibraries: () -> Unit
 ) {
     val context = LocalContext.current
@@ -90,27 +90,7 @@ fun SettingsScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Settings",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontWeight = FontWeight.Medium
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            )
+            RoundedTopHeaderPanel(title = "Settings")
         }
     ) { padding ->
         Column(
@@ -345,7 +325,7 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(100.dp))
         }
     }
 }

@@ -22,6 +22,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.alif.studentroutine.data.entity.ClassItem
 import com.alif.studentroutine.data.repository.RoutineRepository
+import com.alif.studentroutine.ui.components.DashEmptyCard
+import com.alif.studentroutine.ui.components.OffDayCard
+import com.alif.studentroutine.ui.components.RoundedTopHeaderPanel
 import com.alif.studentroutine.viewmodel.TimetableViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,35 +59,14 @@ fun TimetableScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Timetable",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontWeight = FontWeight.Medium
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onAddClass) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = "Add Class",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+            RoundedTopHeaderPanel(
+                title = "Timetable",
+                navigationIcon = Icons.Default.ArrowBack,
+                navigationContentDescription = "Back",
+                onNavigateBack = onNavigateBack,
+                actionIcon = Icons.Default.Add,
+                actionContentDescription = "Add Class",
+                onActionClick = onAddClass
             )
         }
     ) { padding ->
@@ -189,7 +171,6 @@ fun TimetableScreen(
                             value = daysWithClass.toString(),
                             label = "Days/Week",
                             color = MaterialTheme.colorScheme.tertiary
-                                ?: MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -220,10 +201,14 @@ fun TimetableScreen(
                 // ── Class list ────────────────────────────────
                 if (filteredClasses.isEmpty()) {
                     item {
-                        DashEmptyCard(
-                            if (selectedDay == 0) "No classes yet. Add your first class!"
-                            else "No classes on ${dayNames[selectedDay - 1]}."
-                        )
+                        if (selectedDay == 0) {
+                            DashEmptyCard("No classes yet. Add your first class!")
+                        } else {
+                            OffDayCard(
+                                dayLabel = dayNames[selectedDay - 1],
+                                isToday = selectedDay == todayIndex
+                            )
+                        }
                     }
                 } else {
                     items(filteredClasses, key = { it.id }) { classItem ->
