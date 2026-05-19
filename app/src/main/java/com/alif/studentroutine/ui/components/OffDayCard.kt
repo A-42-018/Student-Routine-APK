@@ -69,7 +69,7 @@ fun OffDayCard(
 
     val headline = if (isToday) "It's an Off Day! 🎉" else "Free day on $dayLabel 🌴"
     val subtext  = if (isToday)
-        "No classes today — enjoy a free day, Alif."
+        "No classes today — enjoy a free day."
     else
         "No classes scheduled. A perfect day to recharge."
 

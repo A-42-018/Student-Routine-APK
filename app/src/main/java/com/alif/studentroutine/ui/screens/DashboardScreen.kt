@@ -80,7 +80,7 @@ fun DashboardScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onNavigateToAddTask,
-                modifier = Modifier.padding(bottom = 72.dp),
+                modifier = Modifier.padding(bottom = 60.dp),
                 icon = {
                     Icon(
                         Icons.Default.AddTask,
@@ -96,7 +96,7 @@ fun DashboardScreen(
                     )
                 },
                 containerColor = MaterialTheme.colorScheme.primary,
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(25.dp)
             )
         }
     ) { scaffoldPadding ->

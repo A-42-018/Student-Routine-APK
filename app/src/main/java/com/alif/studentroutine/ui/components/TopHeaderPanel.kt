@@ -158,12 +158,6 @@ fun DashboardHeroHeader(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Icon(
-                            Icons.Default.Notifications,
-                            contentDescription = "Notifications",
-                            tint = Color.White.copy(alpha = 0.9f),
-                            modifier = Modifier.size(22.dp)
-                        )
                         Box(
                             modifier = Modifier
                                 .size(34.dp)
@@ -183,7 +177,7 @@ fun DashboardHeroHeader(
 
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        text = "$greeting, Alif 👋",
+                        text = "$greeting,👋",
                         color = Color.White,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold
