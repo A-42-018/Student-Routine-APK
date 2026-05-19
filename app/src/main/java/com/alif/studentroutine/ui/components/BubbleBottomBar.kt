@@ -31,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alif.studentroutine.ui.navigation.Screen
-import com.alif.studentroutine.ui.theme.BottomNav
 
 @Composable
 fun BubbleBottomBar(
@@ -59,7 +58,12 @@ fun BubbleBottomBar(
         label = "notchFraction"
     )
 
-    val barColor = BottomNav
+    val barGradient = Brush.horizontalGradient(
+        colors = listOf(
+            Color(0xFF000000),
+            Color(0xFF0F52BA)
+        )
+    )
 
     BoxWithConstraints(
         modifier = modifier
@@ -105,7 +109,7 @@ fun BubbleBottomBar(
             path.lineTo(size.width, size.height)
             path.lineTo(0f, size.height)
             path.close()
-            drawPath(path, barColor)
+            drawPath(path, brush = barGradient)
         }
 
         // ── Inactive tab icons ─────────────────────────────────────
