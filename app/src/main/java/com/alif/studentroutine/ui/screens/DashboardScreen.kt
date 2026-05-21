@@ -44,7 +44,9 @@ fun DashboardScreen(
     repository: RoutineRepository,
     onNavigateToTimetable: () -> Unit,
     onNavigateToAddClass: () -> Unit,
-    onNavigateToAddTask: () -> Unit
+    onNavigateToAddTask: () -> Unit,
+    onNavigateToClassNotes: (Int) -> Unit,
+    onNavigateToNearbyLibraries: () -> Unit
 ) {
     val viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory(repository))
     val todayClasses by viewModel.todayClasses.collectAsStateWithLifecycle()
@@ -127,6 +129,7 @@ fun DashboardScreen(
                     todayClassesCount = todayClasses.size,
                     pendingTasksCount = pendingTasks.size,
                     overdueCount = overdueCount,
+                    onNearbyLibrariesClick = onNavigateToNearbyLibraries,
                     modifier = Modifier.fillMaxWidth()   // simple fillMaxWidth — no offset needed
                 )
             }
@@ -162,7 +165,8 @@ fun DashboardScreen(
                 DayClassesPager(
                     allClasses = allClasses,
                     todayDayIndex = calendar.get(Calendar.DAY_OF_WEEK) - 1,
-                    nowMinutes = nowMinutes
+                    nowMinutes = nowMinutes,
+                    onNavigateToClassNotes = onNavigateToClassNotes
                 )
             }
         }
@@ -331,7 +335,11 @@ fun DashSectionHeader(
 // nowMinutes = null means "not today" — skips ongoing/past logic entirely
 // instead of the magic -1 sentinel.
 @Composable
-fun DashClassCard(classItem: ClassItem, nowMinutes: Int?) {
+fun DashClassCard(
+    classItem: ClassItem,
+    nowMinutes: Int?,
+    onNotesClick: (() -> Unit)? = null
+) {
     val classStart = classItem.startTimeHour * 60 + classItem.startTimeMinute
     val classEnd   = classItem.endTimeHour   * 60 + classItem.endTimeMinute
     val isOngoing  = nowMinutes != null && nowMinutes in classStart until classEnd
@@ -405,6 +413,19 @@ fun DashClassCard(classItem: ClassItem, nowMinutes: Int?) {
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                if (onNotesClick != null) {
+                    IconButton(
+                        onClick = onNotesClick,
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.StickyNote2,
+                            contentDescription = "Class notes",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
                 Text(
                     formatTime(classItem.startTimeHour, classItem.startTimeMinute),
                     fontSize = 12.sp,
@@ -543,7 +564,8 @@ fun DashTaskCard(task: TaskItem, onComplete: () -> Unit) {
 fun DayClassesPager(
     allClasses: List<ClassItem>,
     todayDayIndex: Int,
-    nowMinutes: Int
+    nowMinutes: Int,
+    onNavigateToClassNotes: (Int) -> Unit
 ) {
     val dayLabels     = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
     val dayLabelsFull = listOf("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
@@ -621,7 +643,8 @@ fun DayClassesPager(
                             DashClassCard(
                                 classItem  = classItem,
                                 // Pass null for non-today pages — cleaner than magic -1
-                                nowMinutes = if (page == todayDayIndex) nowMinutes else null
+                                nowMinutes = if (page == todayDayIndex) nowMinutes else null,
+                                onNotesClick = { onNavigateToClassNotes(classItem.id) }
                             )
                         }
                         if (dayClasses.size > 4) {

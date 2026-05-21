@@ -30,9 +30,11 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
             // Reschedule alarms on boot
+            val database = AppDatabase.getDatabase(context)
             val repository = RoutineRepository(
-                AppDatabase.getDatabase(context).classItemDao(),
-                AppDatabase.getDatabase(context).taskItemDao()
+                database.classItemDao(),
+                database.taskItemDao(),
+                database.classNoteDao()
             )
             CoroutineScope(Dispatchers.IO).launch {
                 AlarmScheduler.rescheduleAll(context, repository)

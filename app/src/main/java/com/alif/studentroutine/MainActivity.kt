@@ -39,13 +39,14 @@ class MainActivity : ComponentActivity() {
                     val backStackEntry by navController.currentBackStackEntryAsState()
                     val currentRoute = backStackEntry?.destination?.route
 
-                    val tabRoutes = setOf(
+                    val tabRouteBases = setOf(
                         Screen.Dashboard.route,
                         Screen.Tasks.route,
-                        Screen.NearbyLibraries.route,
+                        Screen.Notes.route.substringBefore("?"),
                         Screen.Settings.route
                     )
-                    val showBubbleBar = currentRoute in tabRoutes
+                    val currentRouteBase = currentRoute?.substringBefore("?")
+                    val showBubbleBar = currentRouteBase in tabRouteBases
 
                     Box(modifier = Modifier.fillMaxSize()) {
                         NavGraph(

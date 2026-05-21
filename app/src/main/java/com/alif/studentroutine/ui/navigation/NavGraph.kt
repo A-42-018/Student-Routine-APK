@@ -14,6 +14,12 @@ sealed class Screen(val route: String) {
     data object Dashboard : Screen("dashboard")
     data object Timetable : Screen("timetable")
     data object Tasks : Screen("tasks")
+    data object Notes : Screen("notes?classId={classId}") {
+        fun createRoute(classId: Int = -1) = "notes?classId=$classId"
+    }
+    data object AddNote : Screen("add_note?noteId={noteId}&classId={classId}") {
+        fun createRoute(noteId: Int = -1, classId: Int = -1) = "add_note?noteId=$noteId&classId=$classId"
+    }
     data object AddClass : Screen("add_class?classId={classId}") {
         fun createRoute(classId: Int = -1) = "add_class?classId=$classId"
     }
@@ -39,7 +45,11 @@ fun NavGraph(
                 repository = repository,
                 onNavigateToTimetable = { navController.navigate(Screen.Timetable.route) },
                 onNavigateToAddClass = { navController.navigate(Screen.AddClass.createRoute()) },
-                onNavigateToAddTask = { navController.navigate(Screen.AddTask.createRoute()) }
+                onNavigateToAddTask = { navController.navigate(Screen.AddTask.createRoute()) },
+                onNavigateToClassNotes = { classId ->
+                    navController.navigate(Screen.Notes.createRoute(classId))
+                },
+                onNavigateToNearbyLibraries = { navController.navigate(Screen.NearbyLibraries.route) }
             )
         }
 
@@ -61,6 +71,43 @@ fun NavGraph(
                 onEditTask = { taskId ->
                     navController.navigate(Screen.AddTask.createRoute(taskId))
                 }
+            )
+        }
+
+        composable(
+            route = Screen.Notes.route,
+            arguments = listOf(navArgument("classId") { type = NavType.IntType; defaultValue = -1 })
+        ) { backStackEntry ->
+            val classId = backStackEntry.arguments?.getInt("classId") ?: -1
+            val filterClassId = classId.takeIf { it >= 0 }
+            NotesScreen(
+                repository = repository,
+                filterClassId = filterClassId,
+                onAddNote = {
+                    navController.navigate(
+                        Screen.AddNote.createRoute(classId = filterClassId ?: -1)
+                    )
+                },
+                onEditNote = { noteId ->
+                    navController.navigate(Screen.AddNote.createRoute(noteId = noteId))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.AddNote.route,
+            arguments = listOf(
+                navArgument("noteId") { type = NavType.IntType; defaultValue = -1 },
+                navArgument("classId") { type = NavType.IntType; defaultValue = -1 }
+            )
+        ) { backStackEntry ->
+            val noteId = backStackEntry.arguments?.getInt("noteId")?.takeIf { it >= 0 }
+            val classId = backStackEntry.arguments?.getInt("classId")?.takeIf { it >= 0 }
+            AddEditNoteScreen(
+                repository = repository,
+                noteId = noteId,
+                preselectedClassId = classId,
+                onBack = { navController.popBackStack() }
             )
         }
 

@@ -9,7 +9,13 @@ import com.alif.studentroutine.notification.NotificationHelper
 class StudentRoutineApp : Application() {
 
     val database by lazy { AppDatabase.getDatabase(this) }
-    val repository by lazy { RoutineRepository(database.classItemDao(), database.taskItemDao()) }
+    val repository by lazy {
+        RoutineRepository(
+            database.classItemDao(),
+            database.taskItemDao(),
+            database.classNoteDao()
+        )
+    }
     val dataStoreManager by lazy { DataStoreManager(this) }
 
     override fun onCreate() {

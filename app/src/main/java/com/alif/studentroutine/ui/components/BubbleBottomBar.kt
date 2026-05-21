@@ -14,7 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.LocalLibrary
+import androidx.compose.material.icons.filled.StickyNote2
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -42,16 +42,20 @@ fun BubbleBottomBar(
 
     val tabs = remember {
         listOf(
-            BubTab(Screen.Dashboard.route, "Classes",  Icons.Default.CalendarMonth),
-            BubTab(Screen.Tasks.route,     "Tasks",    Icons.Default.CheckCircle),
-            BubTab(Screen.NearbyLibraries.route, "Library", Icons.Default.LocalLibrary),
-            BubTab(Screen.Settings.route,  "Settings", Icons.Default.Settings)
+            BubTab(Screen.Dashboard.route, "Classes", Icons.Default.CalendarMonth),
+            BubTab(Screen.Tasks.route,     "Tasks",   Icons.Default.CheckCircle),
+            BubTab(Screen.Notes.createRoute(), "Notes", Icons.Default.StickyNote2),
+            BubTab(Screen.Settings.route,  "Settings",Icons.Default.Settings)
         )
     }
 
-    val selectedIdx = maxOf(0, tabs.indexOfFirst { it.route == currentRoute })
+    val currentRouteBase = currentRoute?.substringBefore("?")
+    val selectedIdx = maxOf(
+        0,
+        tabs.indexOfFirst { it.route.substringBefore("?") == currentRouteBase }
+    )
 
-    // Animated fraction of bar width where notch centre sits (0=left, 1=right)
+    // 4 tabs → each slot is 1/8 of width, centres at 1/8, 3/8, 5/8, 7/8
     val notchFraction by animateFloatAsState(
         targetValue = (selectedIdx * 2 + 1) / 8f,
         animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing),
@@ -59,10 +63,7 @@ fun BubbleBottomBar(
     )
 
     val barGradient = Brush.horizontalGradient(
-        colors = listOf(
-            Color(0xFF000000),
-            Color(0xFF0F52BA)
-        )
+        colors = listOf(Color(0xFF000000), Color(0xFF0F52BA))
     )
 
     BoxWithConstraints(
@@ -76,30 +77,27 @@ fun BubbleBottomBar(
                 ambientColor = Color.Black.copy(alpha = 0.16f)
             )
     ) {
-        // Animated horizontal offset for the bubble (left edge of 56dp circle)
         val bubbleX by animateDpAsState(
             targetValue = maxWidth * ((selectedIdx * 2 + 1).toFloat() / 8f) - 28.dp,
             animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing),
             label = "bubbleX"
         )
 
-        // ── Dark bar with smooth curved notch ─────────────────────
+        // ── Bar with curved notch ──────────────────────────────
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val barTopY      = 28.dp.toPx()
+            val barTopY = 28.dp.toPx()
             val notchCenterX = size.width * notchFraction
-            val hw           = 44.dp.toPx()   // notch half-width
-            val depth        = 26.dp.toPx()   // notch depth
+            val hw = 44.dp.toPx()
+            val depth = 26.dp.toPx()
 
             val path = Path()
             path.moveTo(0f, barTopY)
             path.lineTo(notchCenterX - hw, barTopY)
-            // left arc of notch
             path.cubicTo(
                 notchCenterX - hw * 0.5f, barTopY,
                 notchCenterX - hw * 0.5f, barTopY + depth,
                 notchCenterX, barTopY + depth
             )
-            // right arc of notch
             path.cubicTo(
                 notchCenterX + hw * 0.5f, barTopY + depth,
                 notchCenterX + hw * 0.5f, barTopY,
@@ -112,7 +110,7 @@ fun BubbleBottomBar(
             drawPath(path, brush = barGradient)
         }
 
-        // ── Inactive tab icons ─────────────────────────────────────
+        // ── Inactive tab icons ─────────────────────────────────
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -153,7 +151,7 @@ fun BubbleBottomBar(
             }
         }
 
-        // ── Glowing floating active-tab bubble ────────────────────
+        // ── Active bubble ──────────────────────────────────────
         Box(
             modifier = Modifier
                 .offset(x = bubbleX, y = 0.dp)
@@ -161,7 +159,7 @@ fun BubbleBottomBar(
                 .shadow(
                     elevation = 12.dp,
                     shape = CircleShape,
-                    spotColor   = Color(0xFF4080FF),
+                    spotColor = Color(0xFF4080FF),
                     ambientColor = Color(0xFF3070FF)
                 )
                 .background(
@@ -169,8 +167,7 @@ fun BubbleBottomBar(
                         colors = listOf(Color(0xFF6AABFF), Color(0xFF1C52FF))
                     ),
                     shape = CircleShape
-                )
-                .clip(CircleShape),
+                ),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -181,4 +178,4 @@ fun BubbleBottomBar(
             )
         }
     }
-}
+    }
