@@ -9,6 +9,7 @@ import com.alif.studentroutine.data.entity.ClassItem
 import com.alif.studentroutine.data.entity.TaskItem
 import com.alif.studentroutine.data.repository.RoutineRepository
 import com.alif.studentroutine.notification.AlarmScheduler
+import com.alif.studentroutine.widget.WidgetUpdater
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -27,6 +28,7 @@ class AddEditViewModel(
             if (dataStoreManager.notificationsEnabledFlow.first()) {
                 AlarmScheduler.scheduleClassReminder(context, savedClass)
             }
+            WidgetUpdater.updateAll(context)
         }
     }
 
@@ -37,6 +39,7 @@ class AddEditViewModel(
             if (dataStoreManager.notificationsEnabledFlow.first()) {
                 AlarmScheduler.scheduleClassReminder(context, classItem)
             }
+            WidgetUpdater.updateAll(context)
         }
     }
 
@@ -44,6 +47,7 @@ class AddEditViewModel(
         viewModelScope.launch {
             AlarmScheduler.cancelReminder(context, classItem.id, 10000)
             repository.deleteClass(classItem)
+            WidgetUpdater.updateAll(context)
         }
     }
 
@@ -54,6 +58,7 @@ class AddEditViewModel(
             if (dataStoreManager.notificationsEnabledFlow.first()) {
                 AlarmScheduler.scheduleTaskReminder(context, savedTask)
             }
+            WidgetUpdater.updateAll(context)
         }
     }
 
@@ -64,6 +69,7 @@ class AddEditViewModel(
             if (!taskItem.isCompleted && dataStoreManager.notificationsEnabledFlow.first()) {
                 AlarmScheduler.scheduleTaskReminder(context, taskItem)
             }
+            WidgetUpdater.updateAll(context)
         }
     }
 
@@ -71,6 +77,7 @@ class AddEditViewModel(
         viewModelScope.launch {
             AlarmScheduler.cancelReminder(context, taskItem.id, 20000)
             repository.deleteTask(taskItem)
+            WidgetUpdater.updateAll(context)
         }
     }
 

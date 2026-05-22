@@ -1,5 +1,8 @@
 package com.alif.studentroutine.ui.screens
 
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -31,6 +34,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import com.alif.studentroutine.R
 import com.alif.studentroutine.ui.components.RoundedTopHeaderPanel
+import com.alif.studentroutine.widget.RoutineWidgetReceiver
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,6 +82,7 @@ fun SettingsScreen(
                         ?: error("Unable to read backup file")
                     BackupManager.importFromJson(repository, json)
                     if (notificationsEnabled) AlarmScheduler.rescheduleAll(context, repository)
+                    com.alif.studentroutine.widget.WidgetUpdater.updateAll(context)
                 }.onSuccess {
                     Toast.makeText(context, "Backup imported", Toast.LENGTH_SHORT).show()
                 }.onFailure {
@@ -138,6 +143,34 @@ fun SettingsScreen(
             // ── Study Tools ───────────────────────────────────
             SettingsSectionCard {
                 SettingsSectionLabel(icon = Icons.Default.School, label = "Study Tools")
+
+                SettingsNavRow(
+                    icon = Icons.Default.Widgets,
+                    title = context.getString(R.string.widget_pin_title),
+                    subtitle = context.getString(R.string.widget_pin_subtitle),
+                    onClick = {
+                        val manager = AppWidgetManager.getInstance(context)
+                        val provider = ComponentName(context, RoutineWidgetReceiver::class.java)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                            manager.isRequestPinAppWidgetSupported
+                        ) {
+                            manager.requestPinAppWidget(provider, null, null)
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.widget_pin_requested),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.widget_pin_not_supported),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                )
+
+                SettingsDivider()
 
                 SettingsNavRow(
                     icon = Icons.Default.LocalLibrary,

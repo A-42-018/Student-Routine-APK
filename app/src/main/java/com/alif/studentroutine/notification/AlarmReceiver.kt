@@ -10,6 +10,7 @@ import com.alif.studentroutine.data.database.AppDatabase
 import com.alif.studentroutine.data.entity.ClassItem
 import com.alif.studentroutine.data.entity.TaskItem
 import com.alif.studentroutine.data.repository.RoutineRepository
+import com.alif.studentroutine.widget.WidgetUpdater
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,6 +39,7 @@ class BootReceiver : BroadcastReceiver() {
             )
             CoroutineScope(Dispatchers.IO).launch {
                 AlarmScheduler.rescheduleAll(context, repository)
+                WidgetUpdater.updateAll(context)
             }
         }
     }

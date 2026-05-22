@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Student Routine</string>
+    <string name="widget_name">Today\'s Routine</string>
+    <string name="widget_description">Next class and urgent tasks at a glance</string>
+    <string name="widget_pin_title">Add home screen widget</string>
+    <string name="widget_pin_subtitle">See your next class and tasks on the home screen</string>
+    <string name="widget_pin_not_supported">Long-press the home screen, choose Widgets, then add Today\'s Routine</string>
+    <string name="widget_pin_requested">Check your home screen to add the widget</string>
 </resources>

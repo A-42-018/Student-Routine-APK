@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -35,6 +36,7 @@ fun TasksScreen(
     onAddTask: () -> Unit,
     onEditTask: (Int) -> Unit
 ) {
+    val context = LocalContext.current
     val viewModel: TasksViewModel = viewModel(factory = TasksViewModel.Factory(repository))
     val allTasks by viewModel.allTasks.collectAsStateWithLifecycle()
 
@@ -162,9 +164,9 @@ fun TasksScreen(
                 items(displayedTasks, key = { it.id }) { task ->
                     FullTaskCard(
                         task = task,
-                        onToggleComplete = { viewModel.toggleTaskComplete(task) },
+                        onToggleComplete = { viewModel.toggleTaskComplete(context, task) },
                         onEdit = { onEditTask(task.id) },
-                        onDelete = { viewModel.deleteTask(task) }
+                        onDelete = { viewModel.deleteTask(context, task) }
                     )
                 }
             }

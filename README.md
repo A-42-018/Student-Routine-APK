@@ -8,6 +8,7 @@ A modern, student-friendly Android app for managing daily routine activities.
 - **Tasks**: To-do list with priorities, due dates, and completion tracking
 - **Reminders**: Local push notifications for upcoming classes and task deadlines
 - **Nearby Libraries**: Find libraries near your current location with map integration
+- **Home Screen Widget**: Glance widget showing your next class today and top pending tasks
 - **Modern UI**: Built with Jetpack Compose using a clean card-based design
 
 ## Tech Stack
@@ -16,6 +17,7 @@ A modern, student-friendly Android app for managing daily routine activities.
 - **Architecture**: MVVM with ViewModel + StateFlow
 - **Database**: Room (SQLite)
 - **Navigation**: Jetpack Navigation Compose
+- **Widgets**: Jetpack Glance App Widget
 - **Notifications**: AlarmManager + BroadcastReceiver
 
 ## Project Structure
