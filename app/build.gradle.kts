@@ -76,6 +76,9 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
+    // WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
     // Location (using built-in LocationManager — no Play Services needed)
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
